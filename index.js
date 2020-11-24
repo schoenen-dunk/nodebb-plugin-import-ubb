@@ -1,6 +1,6 @@
 
 var async = require('async');
-var mysql = require('mysql');
+var mysql = require('mariadb');
 var _ = require('underscore');
 var noop = function(){};
 var logPrefix = '[nodebb-plugin-import-ubb]';
@@ -15,16 +15,16 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var _config = {
 			host: config.dbhost || config.host || 'localhost',
 			user: config.dbuser || config.user || 'root',
-			password: config.dbpass || config.pass || config.password || '',
+			password: config.dbpass || config.pass || config.password || 'ale451ne',
 			port: config.dbport || config.port || 3306,
-			database: config.dbname || config.name || config.database || 'ubb'
+			database: config.dbname || config.name || config.database || 'sd'
 		};
 
 		Exporter.config(_config);
 		Exporter.config('prefix', config.prefix || config.tablePrefix || '');
 
-		Exporter.connection = mysql.createConnection(_config);
-		Exporter.connection.connect();
+		var pool = mysql.createPool(_config);
+		Exporter.connection = pool.getConnection();
 
 		callback(null, Exporter.config());
 	};
@@ -39,32 +39,21 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
 		var query = 'SELECT '
-				+ prefix + 'USERS.USER_ID as _uid, '
-				+ prefix + 'USERS.USER_LOGIN_NAME as _username, '
-				+ prefix + 'USERS.USER_DISPLAY_NAME as _alternativeUsername, '
-				+ prefix + 'USERS.USER_REGISTRATION_EMAIL as _registrationEmail, '
-				+ prefix + 'USERS.USER_MEMBERSHIP_LEVEL as _level, '
-				+ prefix + 'USERS.USER_REGISTERED_ON as _joindate, '
-				+ prefix + 'USERS.USER_IS_banned as _banned, '
-				+ prefix + 'USER_PROFILE.USER_REAL_EMAIL as _email, '
-				+ prefix + 'USER_PROFILE.USER_SIGNATURE as _signature, '
-				+ prefix + 'USER_PROFILE.USER_HOMEPAGE as _website, '
-				+ prefix + 'USER_PROFILE.USER_OCCUPATION as _occupation, '
-				+ prefix + 'USER_PROFILE.USER_LOCATION as _location, '
-				+ prefix + 'USER_PROFILE.USER_AVATAR as _picture, '
-				+ prefix + 'USER_PROFILE.USER_TITLE as _badge, '
-				+ prefix + 'USER_PROFILE.USER_RATING as _reputation, '
-				+ prefix + 'USER_PROFILE.USER_TOTAL_RATES as _profileviews, '
-				+ prefix + 'USER_PROFILE.USER_BIRTHDAY as _birthday, '
-				+ prefix + 'BANNED_USERS.USER_ID as _banned, '
-				+ prefix + 'USER_GROUPS.GROUP_ID as _gid '
-
-				+ 'FROM ' + prefix + 'USERS '
-				+ 'JOIN ' + prefix + 'USER_PROFILE ON ' + prefix + 'USER_PROFILE.USER_ID = ' + prefix + 'USERS.USER_ID '
-				+ 'LEFT JOIN ' + prefix + 'BANNED_USERS ON ' + prefix + 'BANNED_USERS.USER_ID = ' + prefix + 'USERS.USER_ID '
-				+ 'LEFT JOIN ' + prefix + 'USER_GROUPS ON ' + prefix + 'USER_GROUPS.USER_ID = ' + prefix + 'USERS.USER_ID '
+				+ prefix + 'core_user.id as _uid, '
+				+ prefix + 'core_user.id as _username, '
+				+ prefix + 'core_user.id as _alternativeUsername, '
+				+ prefix + 'core_user.email as _registrationEmail, '
+				+ prefix + 'core_user.reg_tim as _joindate, '
+				+ prefix + 'core_user.deleted as _banned, '
+				+ prefix + 'core_user.email as _email, '
+				+ prefix + 'core_user.signature as _signature, '
+				+ prefix + 'core_user.www as _website, '
+				+ prefix + 'core_user.avatar as _picture, '
+				+ prefix + 'core_user.id as _badge, '
+				+ prefix + 'core_user.birthdate as _birthday, '
+                                + 'FROM ' + 'core_user '
 				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
-
+Exporter.log("User query: " + query);
 
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
@@ -78,7 +67,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 						Exporter.error(err);
 						return callback(err);
 					}
-
+Exporter.log("User Rows: " + rows.length);
 					//normalize here
 					var map = {};
 					rows.forEach(function(row) {
@@ -102,7 +91,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 
 						map[row._uid] = row;
 					});
-
+Exporter.log("##################" + map.length);
 					callback(null, map);
 				});
 	};
