@@ -210,19 +210,20 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
 		var query =
-				'SELECT POST_ID as _pid, '
-				+ 'USER_ID as _uid, '
-				+ 'TOPIC_ID as _tid, '
-				+ 'POST_BODY as _content, '
-				+ 'POST_POSTED_TIME as _timestamp, '
-				+ 'POST_PARENT_ID as _toPid, '
-				+ 'POST_LAST_EDITED_TIME as _edited, '
-				+ 'POST_POSTER_IP as _ip '
-
-				+ 'FROM ' + prefix + 'POSTS '
+				'SELECT '
+                              + 'forum_post.id as _pid, '
+                              + 'forum_post.post_user_id, '
+                              + 'forum_post_forum_thread.forum_thread_id as _tid, '
+                              + 'forum_post.message as _content, '
+                              + 'forum_post.parent_id as _toPid, '
+                              + 'forum_post.parent_id, '
+                              + 'forum_post.lastedit_time as _edited, '
+                              + 'forum_post.ip_address as _ip '
+                              + 'FROM forum_post '
+                              + 'JOIN forum_post_forum_thread ON forum_post_forum_thread.forum_post_id=forum_post.id '
 					// this post cannot be a its topic's main post, it MUST be a reply-post
 					// see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
-				+ 'WHERE POST_PARENT_ID > 0 '
+				+ 'WHERE parent_id is NOT NULL '
 				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
 
 
