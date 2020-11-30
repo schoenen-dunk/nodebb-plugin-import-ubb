@@ -154,22 +154,23 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var err;
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
-		var query =
+		var query =     
 				'SELECT '
-				+ prefix + 'TOPICS.TOPIC_ID as _tid, '
-				+ prefix + 'TOPICS.TOPIC_SUBJECT as _title, '
-				+ prefix + 'TOPICS.FORUM_ID as _cid, '
-				+ prefix + 'TOPICS.USER_ID as _uid, '
-				+ prefix + 'POSTS.POST_BODY as _content, '
-				+ prefix + 'TOPICS.TOPIC_VIEWS as _viewcount, '
-				+ prefix + 'TOPICS.TOPIC_CREATED_TIME as _timestamp, '
-				+ prefix + 'TOPICS.TOPIC_IS_STICKY as _pinned, '
-				+ prefix + 'POSTS.POST_LAST_EDITED_TIME as _edited, '
-				+ prefix + 'POSTS.POST_POSTER_IP as _ip '
-				+ 'FROM ' + prefix + 'TOPICS '
-				+ 'JOIN ' + prefix + 'POSTS ON ' + prefix + 'POSTS.TOPIC_ID=' + prefix + 'TOPICS.TOPIC_ID '
-				+ 'AND ' + prefix + 'POSTS.POST_PARENT_ID=0 '
-				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
+		             +  'forum_thread.id as _tid, '
+                             +  'forum_thread.title as _title, '
+                             +  'forum_board_forum_thread.forum_thread_id as _cid, '
+                             +  'forum_thread.start_user_id as _uid, '
+                             +  'forum_post.message as _content, '
+                             +  'forum_thread.post_count as _viewcount, '
+                             +  'forum_thread.start_time as _timestampi, '
+                             +  'forum_thread.sticky as _pinned, '
+                             +  'forum_post.lastedit_time as _edited, '
+                             +  'forum_post.ip_address as _ip '
+                             +  'FROM forum_thread '
+                             +  'JOIN forum_board_forum_thread ON forum_thread.id=forum_board_forum_thread.forum_thread_id '
+                             +  'JOIN forum_post ON forum_thread.start_post_id=forum_post.id '
+
+		             + (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
 
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
