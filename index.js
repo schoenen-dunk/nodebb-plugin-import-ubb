@@ -25,21 +25,22 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 
 		Exporter.connection = mysql.createConnection(_config);
 		Exporter.connection.connect();
+		Exporter.log('########  Mysql connected    #######');
 
 		callback(null, Exporter.config());
 	};
-
+    //    Exporter.log('Prepare get Users');
 	Exporter.getUsers = function(callback) {
 		return Exporter.getPaginatedUsers(0, -1, callback);
 	};
 	Exporter.getPaginatedUsers = function(start, limit, callback) {
 		callback = !_.isFunction(callback) ? noop : callback;
-
+        Exporter.log('PREPARE DB statement');
 		var err;
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
 		var query = 'SELECT '
-		               + prefix + 'core_user.id as _uid, '
+		               + prefix + 'core_use.id as _uid, '
                                + prefix + 'core_user.id as _username, '
                                + prefix + 'core_user.id as _alternativeUsername, '
                                + prefix + 'core_user.email as _registrationEmail, '
@@ -61,6 +62,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			Exporter.error(err.error);
 			return callback(err);
 		}
+		Exporter.log("User query: " + query);
 
 		Exporter.connection.query(query,
 				function(err, rows) {
@@ -68,6 +70,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 						Exporter.error(err);
 						return callback(err);
 					}
+
+	        Exporter.log("User Rows: " + rows.length);
 
 					//normalize here
 					var map = {};
@@ -90,48 +94,6 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 						delete row._gid;
 
 
-						map[row._uid] = row;
-					});
-
-					callback(null, map);
-				});
-	};
-
-	Exporter.getGroups = function(callback) {
-		return Exporter.getPaginatedGroups(0, -1, callback);
-	};
-
-	Exporter.getPaginatedGroups = function(start, limit, callback) {
-		callback = !_.isFunction(callback) ? noop : callback;
-
-		var err;
-		var prefix = Exporter.config('prefix');
-		var startms = +new Date();
-		var query = 'SELECT '
-				+ prefix + 'GROUPS.GROUP_ID as _gid, '
-				+ prefix + 'GROUPS.GROUP_NAME as _name, '
-				+ prefix + 'USER_GROUPS.USER_ID AS _ownerUid '
-				+ 'FROM ' + prefix + 'GROUPS '
-				+ 'JOIN ' + prefix + 'USER_GROUPS ON ' + prefix + 'USER_GROUPS.GROUP_ID=' + prefix + 'GROUPS.GROUP_ID '
-				+ 'GROUP BY ' + prefix + 'GROUPS.GROUP_ID '
-				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
-
-
-		if (!Exporter.connection) {
-			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
-			Exporter.error(err.error);
-			return callback(err);
-		}
-
-		Exporter.connection.query(query,
-				function(err, rows) {
-					if (err) {
-						Exporter.error(err);
-						return callback(err);
-					}
-					//normalize here
-					var map = {};
-					rows.forEach(function(row) {
 						map[row._uid] = row;
 					});
 
