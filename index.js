@@ -111,11 +111,10 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
 		var query = 'SELECT '
-				+ prefix + 'FORUMS.FORUM_ID as _cid, '
-				+ prefix + 'FORUMS.FORUM_TITLE as _name, '
-				+ prefix + 'FORUMS.FORUM_DESCRIPTION as _description, '
-				+ prefix + 'FORUMS.FORUM_CREATED_ON as _timestamp '
-				+ 'FROM ' + prefix + 'FORUMS '
+				+ prefix + 'forum_board.id as _cid, '
+				+ prefix + 'forum_board.name as _name, '
+				+ prefix + 'forum_board.description as _description, '
+				+ 'FROM ' + prefix + 'forum_board '
 				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
 
 
