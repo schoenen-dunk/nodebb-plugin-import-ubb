@@ -13,11 +13,11 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		// mysql db only config
 		// extract them from the configs passed by the nodebb-plugin-import adapter
 		var _config = {
-			host: config.dbhost || config.host || 'localhost',
-			user: config.dbuser || config.user || 'root',
-			password: config.dbpass || config.pass || config.password || 'ale451ne',
+			host: config.dbhost || config.host || '',
+			user: config.dbuser || config.user || '',
+			password: config.dbpass || config.pass || config.password || '',
 			port: config.dbport || config.port || 3306,
-			database: config.dbname || config.name || config.database || 'sd'
+			database: config.dbname || config.name || config.database || ''
 		};
 
 		Exporter.config(_config);
@@ -29,17 +29,19 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 
 		callback(null, Exporter.config());
 	};
-    //    Exporter.log('Prepare get Users');
 	Exporter.getUsers = function(callback) {
 		return Exporter.getPaginatedUsers(0, -1, callback);
 	};
+    //    Exporter.log('Prepare get Users');
 	Exporter.getPaginatedUsers = function(start, limit, callback) {
 		callback = !_.isFunction(callback) ? noop : callback;
+	// folgende Logzeile sehe ich gar nicht
         Exporter.log('PREPARE DB statement');
 		var err;
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
 		var query = 'SELECT '
+		               // nächste Zeile ist ein harter DB Fehler - den sehe ich nicht
 		               + prefix + 'core_use.id as _uid, '
                                + prefix + 'core_user.id as _username, '
                                + prefix + 'core_user.id as _alternativeUsername, '
@@ -104,6 +106,11 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 	Exporter.getCategories = function(callback) {
 		return Exporter.getPaginatedCategories(0, -1, callback);
 	};
+
+       // Exporter.getCategories.log('Prepare get Cats');
+       // Exporter.log('Prepare get Cats');
+       // ERROR (for both): [4567/1378] - error: uncaughtException: Exporter.log is not a function
+       // funktioniert aber in den Bereichen Zeile 11-34 für den Connection Aufbau 
 	Exporter.getPaginatedCategories = function(start, limit, callback) {
 		callback = !_.isFunction(callback) ? noop : callback;
 
@@ -116,7 +123,10 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				+ prefix + 'forum_board.description as _description, '
 				+ 'FROM ' + prefix + 'forum_board '
 				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
-
+                 //ERROR
+		// 'You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near \'FROM forum_board LIMIT 0,600000\' at line 1',
+		// wir bekommen offenbar limit nicht ordentlich zurück - any ideas?
+  
 
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
