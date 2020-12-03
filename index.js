@@ -29,6 +29,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 
 		callback(null, Exporter.config());
 	};
+//	Exporter.log('finished setup');
 	Exporter.getUsers = function(callback) {
 		return Exporter.getPaginatedUsers(0, -1, callback);
 	};
