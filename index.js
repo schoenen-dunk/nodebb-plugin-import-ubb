@@ -26,15 +26,16 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		Exporter.connection = mysql.createConnection(_config);
 		Exporter.connection.connect();
 		Exporter.log('########  Mysql connected    #######');
-
+                //Exporter.getUsers();
 		callback(null, Exporter.config());
 	};
 //	Exporter.log('finished setup');
 	Exporter.getUsers = function(callback) {
+                Exporter.log('tralala');
 		return Exporter.getPaginatedUsers(0, -1, callback);
 	};
-    //    Exporter.log('Prepare get Users');
 	Exporter.getPaginatedUsers = function(start, limit, callback) {
+        Exporter.log('Prepare get Users');
 		callback = !_.isFunction(callback) ? noop : callback;
 	// folgende Logzeile sehe ich gar nicht
         Exporter.log('PREPARE DB statement');
@@ -43,7 +44,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var startms = +new Date();
 		var query = 'SELECT '
 		               // nächste Zeile ist ein harter DB Fehler - den sehe ich nicht
-		               + prefix + 'core_use.id as _uid, '
+		               + prefix + 'core_user.id as _uid, '
                                + prefix + 'core_user.id as _username, '
                                + prefix + 'core_user.id as _alternativeUsername, '
                                + prefix + 'core_user.email as _registrationEmail, '
@@ -57,7 +58,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                                + prefix + 'core_user.birthdate as _birthday, '
                                + 'FROM ' + 'core_user '
 
-			       + (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
+	         	       + (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 
 
 		if (!Exporter.connection) {
@@ -108,27 +109,21 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		return Exporter.getPaginatedCategories(0, -1, callback);
 	};
 
-       // Exporter.getCategories.log('Prepare get Cats');
-       // Exporter.log('Prepare get Cats');
-       // ERROR (for both): [4567/1378] - error: uncaughtException: Exporter.log is not a function
-       // funktioniert aber in den Bereichen Zeile 11-34 für den Connection Aufbau 
 	Exporter.getPaginatedCategories = function(start, limit, callback) {
 		callback = !_.isFunction(callback) ? noop : callback;
-
+                Exporter.log('Limit: ' + limit);
+		Exporter.log('Start: ' + start);
 		var err;
 		var prefix = Exporter.config('prefix');
+		Exporter.log('######## Testlog ######');
 		var startms = +new Date();
 		var query = 'SELECT '
 				+ prefix + 'forum_board.id as _cid, '
 				+ prefix + 'forum_board.name as _name, '
-				+ prefix + 'forum_board.description as _description, '
-				+ 'FROM ' + prefix + 'forum_board '
-				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
-                 //ERROR
-		// 'You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near \'FROM forum_board LIMIT 0,600000\' at line 1',
-		// wir bekommen offenbar limit nicht ordentlich zurück - any ideas?
-  
+				+ prefix + 'forum_board.description as _description '
+				+ 'FROM ' + prefix + 'forum_board' 
 
+				+ (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
 			Exporter.error(err.error);
@@ -180,9 +175,9 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                              +  'FROM forum_thread '
                              +  'JOIN forum_board_forum_thread ON forum_thread.id=forum_board_forum_thread.forum_thread_id '
                              +  'JOIN forum_post ON forum_thread.start_post_id=forum_post.id '
+		
 
-		             + (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
-
+				+ (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
 			Exporter.error(err.error);
@@ -235,8 +230,9 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 					// this post cannot be a its topic's main post, it MUST be a reply-post
 					// see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
 				+ 'WHERE parent_id is NOT NULL '
-				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
 
+
+				+ (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
@@ -329,7 +325,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				+ prefix + 'PRIVATE_MESSAGE_POSTS.POST_TIME as _timestamp '
 
 				+ 'FROM ' + prefix + 'PRIVATE_MESSAGE_POSTS '
-				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
+
+				+ (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 
 		getConversations(function(err, conversations) {
 			if (err) {
@@ -385,6 +382,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			},
 			function(next) {
 				Exporter.getUsers(next);
+				Exporter.error('asyn getUsers');
 			},
 			function(next) {
 				Exporter.getGroups(next);
@@ -413,6 +411,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				Exporter.setup(config, next);
 			},
 			function(next) {
+
+				Exporter.error('async getUsers');
 				Exporter.getPaginatedUsers(0, 1000, next);
 			},
 			function(next) {
