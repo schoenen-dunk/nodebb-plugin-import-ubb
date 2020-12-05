@@ -26,18 +26,14 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		Exporter.connection = mysql.createConnection(_config);
 		Exporter.connection.connect();
 		Exporter.log('########  Mysql connected    #######');
-                //Exporter.getUsers();
 		callback(null, Exporter.config());
 	};
-//	Exporter.log('finished setup');
 	Exporter.getUsers = function(callback) {
-                Exporter.log('tralala');
 		return Exporter.getPaginatedUsers(0, -1, callback);
 	};
 	Exporter.getPaginatedUsers = function(start, limit, callback) {
         Exporter.log('Prepare get Users');
 		callback = !_.isFunction(callback) ? noop : callback;
-	// folgende Logzeile sehe ich gar nicht
         Exporter.log('PREPARE DB statement');
 		var err;
 		var prefix = Exporter.config('prefix');
@@ -115,7 +111,6 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		Exporter.log('Start: ' + start);
 		var err;
 		var prefix = Exporter.config('prefix');
-		Exporter.log('######## Testlog ######');
 		var startms = +new Date();
 		var query = 'SELECT '
 				+ prefix + 'forum_board.id as _cid, '
@@ -382,7 +377,6 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			},
 			function(next) {
 				Exporter.getUsers(next);
-				Exporter.error('asyn getUsers');
 			},
 			function(next) {
 				Exporter.getGroups(next);
@@ -412,7 +406,6 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			},
 			function(next) {
 
-				Exporter.error('async getUsers');
 				Exporter.getPaginatedUsers(0, 1000, next);
 			},
 			function(next) {
