@@ -39,24 +39,24 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
 		var query = 'SELECT '
-		               // nächste Zeile ist ein harter DB Fehler - den sehe ich nicht
 		               + prefix + 'core_user.id as _uid, '
                                + prefix + 'core_user.id as _username, '
                                + prefix + 'core_user.id as _alternativeUsername, '
                                + prefix + 'core_user.email as _registrationEmail, '
-                               + prefix + 'core_user.reg_tim as _joindate, '
+                               + prefix + 'core_user.reg_time as _joindate, '
                                + prefix + 'core_user.deleted as _banned, '
                                + prefix + 'core_user.email as _email, '
                                + prefix + 'core_user.signature as _signature, '
                                + prefix + 'core_user.www as _website, '
                                + prefix + 'core_user.avatar as _picture, '
                                + prefix + 'core_user.id as _badge, '
-                               + prefix + 'core_user.birthdate as _birthday, '
+                               + prefix + 'core_user.birthdate as _birthday '
                                + 'FROM ' + 'core_user '
 
 	         	       + (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 
 
+		Exporter.log('QUERY: ' + query);
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
 			Exporter.error(err.error);
@@ -119,6 +119,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				+ 'FROM ' + prefix + 'forum_board' 
 
 				+ (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
+		Exporter.log('QUERY: ' + query);
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
 			Exporter.error(err.error);
