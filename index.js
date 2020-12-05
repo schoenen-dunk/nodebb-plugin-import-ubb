@@ -41,19 +41,19 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
 		var query = 'SELECT '
-		               // nächste Zeile ist ein harter DB Fehler - den sehe ich nicht
-		               + prefix + 'core_use.id as _uid, '
+		               // nächste Zeile ist ei harter DB Fehler - den sehe ich nicht
+		                       + prefix + 'core_user.id as _uid, '
                                + prefix + 'core_user.id as _username, '
                                + prefix + 'core_user.id as _alternativeUsername, '
                                + prefix + 'core_user.email as _registrationEmail, '
-                               + prefix + 'core_user.reg_tim as _joindate, '
+                               + prefix + 'core_user.reg_time as _joindate, '
                                + prefix + 'core_user.deleted as _banned, '
                                + prefix + 'core_user.email as _email, '
                                + prefix + 'core_user.signature as _signature, '
                                + prefix + 'core_user.www as _website, '
                                + prefix + 'core_user.avatar as _picture, '
                                + prefix + 'core_user.id as _badge, '
-                               + prefix + 'core_user.birthdate as _birthday, '
+                               + prefix + 'core_user.birthdate as _birthday '
                                + 'FROM ' + 'core_user '
 
 			       + (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
@@ -64,6 +64,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			Exporter.error(err.error);
 			return callback(err);
 		}
+		var test = "line 67 check"
+		Exporter.warn(test);
 		Exporter.log("User query: " + query);
 
 		Exporter.connection.query(query,
@@ -102,7 +104,6 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 					callback(null, map);
 				});
 	};
-
 	Exporter.getCategories = function(callback) {
 		return Exporter.getPaginatedCategories(0, -1, callback);
 	};
@@ -120,7 +121,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var query = 'SELECT '
 				+ prefix + 'forum_board.id as _cid, '
 				+ prefix + 'forum_board.name as _name, '
-				+ prefix + 'forum_board.description as _description, '
+				+ prefix + 'forum_board.description as _description '
 				+ 'FROM ' + prefix + 'forum_board '
 				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
                  //ERROR
@@ -133,11 +134,11 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			Exporter.error(err.error);
 			return callback(err);
 		}
-
 		Exporter.connection.query(query,
 				function(err, rows) {
 					if (err) {
 						Exporter.error(err);
+						Exporter.error(query);
 						return callback(err);
 					}
 
@@ -170,12 +171,12 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                              +  'forum_thread.title as _title, '
                              +  'forum_board_forum_thread.forum_thread_id as _cid, '
                              +  'forum_thread.start_user_id as _uid, '
-                             +  'forum_post.message as _content, '
-                             +  'forum_thread.post_count as _viewcount, '
-                             +  'forum_thread.start_time as _timestampi, '
-                             +  'forum_thread.sticky as _pinned, '
-                             +  'forum_post.lastedit_time as _edited, '
-                             +  'forum_post.ip_address as _ip '
+                             +  'forum_post.message as _content '
+                             //+  'forum_thread.post_count as _viewcount, '
+                             //+  'forum_thread.start_time as _timestampi, '
+                             //+  'forum_thread.sticky as _pinned, '
+                             //+  'forum_post.lastedit_time as _edited, '
+                             //+  'forum_post.ip_address as _ip '
                              +  'FROM forum_thread '
                              +  'JOIN forum_board_forum_thread ON forum_thread.id=forum_board_forum_thread.forum_thread_id '
                              +  'JOIN forum_post ON forum_thread.start_post_id=forum_post.id '
@@ -185,6 +186,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
 			Exporter.error(err.error);
+			Exporter.error(query);
 			return callback(err);
 		}
 
@@ -271,14 +273,14 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
 
-		var query = 'SELECT '
-				+ prefix + 'PRIVATE_MESSAGE_USERS.TOPIC_ID as _cvid, '
-				+ prefix + 'PRIVATE_MESSAGE_USERS.USER_ID as _uid1, '
-				+ prefix + 'PRIVATE_MESSAGE_POSTS.USER_ID as _uid2 '
-				+ 'FROM ' + prefix + 'PRIVATE_MESSAGE_USERS '
-				+ 'JOIN ' + prefix + 'PRIVATE_MESSAGE_POSTS '
-				+ 'ON ' + prefix + 'PRIVATE_MESSAGE_POSTS.TOPIC_ID = ' + prefix + 'PRIVATE_MESSAGE_USERS.TOPIC_ID '
-				+ 'AND ' + prefix + 'PRIVATE_MESSAGE_POSTS.USER_ID != ' + prefix + 'PRIVATE_MESSAGE_USERS.USER_ID '
+		var query = 'SELECT * from pm_message';
+				//+ prefix + 'PRIVATE_MESSAGE_USERS.TOPIC_ID as _cvid, '
+				//+ prefix + 'PRIVATE_MESSAGE_USERS.USER_ID as _uid1, '
+				//+ prefix + 'PRIVATE_MESSAGE_POSTS.USER_ID as _uid2 '
+				//+ 'FROM ' + prefix + 'PRIVATE_MESSAGE_USERS '
+				//+ 'JOIN ' + prefix + 'PRIVATE_MESSAGE_POSTS '
+				//+ 'ON ' + prefix + 'PRIVATE_MESSAGE_POSTS.TOPIC_ID = ' + prefix + 'PRIVATE_MESSAGE_USERS.TOPIC_ID '
+				//+ 'AND ' + prefix + 'PRIVATE_MESSAGE_POSTS.USER_ID != ' + prefix + 'PRIVATE_MESSAGE_USERS.USER_ID '
 
 		var parse = function(v) { return parseInt(v, 10); };
 
@@ -286,6 +288,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				function(err, rows) {
 					if (err) {
 						Exporter.error(err);
+						Exporter.error(query);
 						return callback(err);
 					}
 
@@ -307,6 +310,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 
 	}
 
+
 	Exporter.getMessages = function(callback) {
 		return Exporter.getPaginatedMessages(0, -1, callback);
 	};
@@ -320,7 +324,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
 
-		var query = 'SELECT '
+		var query = 'SELECT * from pm_message';/*
 				+ prefix + 'PRIVATE_MESSAGE_POSTS.POST_ID as _mid, '
 				+ prefix + 'PRIVATE_MESSAGE_POSTS.POST_BODY as _content, '
 				+ prefix + 'PRIVATE_MESSAGE_POSTS.USER_ID as _fromuid, '
@@ -329,7 +333,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 
 				+ 'FROM ' + prefix + 'PRIVATE_MESSAGE_POSTS '
 				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
-
+			*/
 		getConversations(function(err, conversations) {
 			if (err) {
 				return callback(err);
@@ -339,6 +343,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 					function(err, rows) {
 						if (err) {
 							Exporter.error(err);
+							Exporter.error(query);
 							return callback(err);
 						}
 
