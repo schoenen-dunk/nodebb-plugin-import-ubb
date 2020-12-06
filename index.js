@@ -44,7 +44,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                                + 'core_user.id as _alternativeUsername, '
                                + 'core_user.email as _registrationEmail, '
                                + 'UNIX_TIMESTAMP(core_user.reg_time) as _joindate, '
-		               //+ 'MIN(UNIX_TIMESTAMP(core_user_session.core_user_id)) as _lastonline, '
+		          //     + 'MIN(UNIX_TIMESTAMP(core_user_session.core_user_id)) as _lastonline, '
                                + 'core_user.deleted as _banned, '
                                + 'core_user.email as _email, '
                                + 'core_user.signature as _signature, '
@@ -53,8 +53,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                                + 'core_user.id as _badge, '
                                + 'core_user.birthdate as _birthday '
                                + 'FROM ' + 'core_user '
-                               //+ 'JOIN core_user_session ON core_user.id=core_user_session.core_user_id '
-		               //+ 'GROUP BY core_user.id '
+                            //   + 'LEFT JOIN core_user_session ON core_user.id=core_user_session.core_user_id '
+		            //   + 'GROUP BY core_user.id '
 
 	         	       + (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 
@@ -116,6 +116,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var err;
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
+		// board = category ~ 30
 		var query = 'SELECT '
 				+ 'forum_board.id as _cid, '
 				+ 'forum_board.name as _name, '
@@ -159,6 +160,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 
 		var err;
 		var prefix = Exporter.config('prefix');
+		// topic = thread
 		var startms = +new Date();
 		var query =     
 				'SELECT '
@@ -168,9 +170,9 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                              +  'forum_thread.start_user_id as _uid, '
                              +  'forum_post.message as _content, '
                              +  'forum_thread.post_count as _viewcount, '
-                             +  'forum_thread.start_time as _timestamp, '
+                             +  'UNIX_TIMESTAMP(forum_thread.start_time) as _timestamp, '
                              +  'forum_thread.sticky as _pinned, '
-                             +  'forum_post.lastedit_time as _edited, '
+                             +  'UNIX_TIMESTAMP(forum_post.lastedit_time) as _edited, '
                              +  'forum_post.ip_address as _ip '
                              +  'FROM forum_thread '
                              +  'JOIN forum_board_forum_thread ON forum_thread.id=forum_board_forum_thread.forum_thread_id '
@@ -219,12 +221,12 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		var query =
 				'SELECT '
                               + 'forum_post.id as _pid, '
-                              + 'forum_post.post_user_id, '
+                              + 'forum_post.post_user_id as _uid, '
                               + 'forum_post_forum_thread.forum_thread_id as _tid, '
                               + 'forum_post.message as _content, '
                               + 'forum_post.parent_id as _toPid, '
                               + 'forum_post.parent_id, '
-                              + 'forum_post.lastedit_time as _edited, '
+                              + 'UNIX_TIMESTAMP(forum_post.lastedit_time) as _edited, '
                               + 'forum_post.ip_address as _ip '
                               + 'FROM forum_post '
                               + 'JOIN forum_post_forum_thread ON forum_post_forum_thread.forum_post_id=forum_post.id '
