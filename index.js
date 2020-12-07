@@ -44,7 +44,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                                + 'core_user.id as _alternativeUsername, '
                                + 'core_user.email as _registrationEmail, '
                                + 'UNIX_TIMESTAMP(core_user.reg_time) as _joindate, '
-		          //     + 'MIN(UNIX_TIMESTAMP(core_user_session.core_user_id)) as _lastonline, '
+		               + 'MIN(UNIX_TIMESTAMP(core_user_session.core_user_id)) as _lastonline, '
                                + 'core_user.deleted as _banned, '
                                + 'core_user.email as _email, '
                                + 'core_user.signature as _signature, '
@@ -53,8 +53,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                                + 'core_user.id as _badge, '
                                + 'core_user.birthdate as _birthday '
                                + 'FROM ' + 'core_user '
-                            //   + 'LEFT JOIN core_user_session ON core_user.id=core_user_session.core_user_id '
-		            //   + 'GROUP BY core_user.id '
+		               + 'LEFT JOIN core_user_session ON core_user_session.core_user_id=core_user.id '
+		               + 'GROUP BY core_user.id '
 
 	         	       + (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 
@@ -225,7 +225,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                               + 'forum_post_forum_thread.forum_thread_id as _tid, '
                               + 'forum_post.message as _content, '
                               + 'forum_post.parent_id as _toPid, '
-                              + 'forum_post.parent_id, '
+		              + 'UNIX_TIMESTAMP(forum_post.post_time) as _timestamp'
                               + 'UNIX_TIMESTAMP(forum_post.lastedit_time) as _edited, '
                               + 'forum_post.ip_address as _ip '
                               + 'FROM forum_post '
