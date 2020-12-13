@@ -44,7 +44,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                                + 'core_user.id as _alternativeUsername, '
                                + 'core_user.email as _registrationEmail, '
                                + 'UNIX_TIMESTAMP(core_user.reg_time) as _joindate, '
-		               + 'MIN(UNIX_TIMESTAMP(core_user_session.core_user_id)) as _lastonline, '
+//		               + 'MIN(UNIX_TIMESTAMP(core_user_session.core_user_id)) as _lastonline, '
                                + 'core_user.deleted as _banned, '
                                + 'core_user.email as _email, '
                                + 'core_user.signature as _signature, '
@@ -53,8 +53,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                                + 'core_user.id as _badge, '
                                + 'core_user.birthdate as _birthday '
                                + 'FROM ' + 'core_user '
-		               + 'LEFT JOIN core_user_session ON core_user_session.core_user_id=core_user.id '
-		               + 'GROUP BY core_user.id '
+//		               + 'LEFT JOIN core_user_session ON core_user_session.core_user_id=core_user.id '
+//		               + 'GROUP BY core_user.id '
 
 	         	       + (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 
@@ -179,7 +179,9 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                              +  'JOIN forum_post ON forum_thread.start_post_id=forum_post.id '
 		
 
-				+ (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
+		             + (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
+	
+		Exporter.log('QUERY: ' + query);
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
 			Exporter.error(err.error);
@@ -214,7 +216,6 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 	};
 	Exporter.getPaginatedPosts = function(start, limit, callback) {
 		callback = !_.isFunction(callback) ? noop : callback;
-
 		var err;
 		var prefix = Exporter.config('prefix');
 		var startms = +new Date();
@@ -225,24 +226,29 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                               + 'forum_post_forum_thread.forum_thread_id as _tid, '
                               + 'forum_post.message as _content, '
                               + 'forum_post.parent_id as _toPid, '
-		              + 'UNIX_TIMESTAMP(forum_post.post_time) as _timestamp'
+		              + 'UNIX_TIMESTAMP(forum_post.post_time) as _timestamp, '
                               + 'UNIX_TIMESTAMP(forum_post.lastedit_time) as _edited, '
                               + 'forum_post.ip_address as _ip '
                               + 'FROM forum_post '
                               + 'JOIN forum_post_forum_thread ON forum_post_forum_thread.forum_post_id=forum_post.id '
 					// this post cannot be a its topic's main post, it MUST be a reply-post
 					// see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
-				+ 'WHERE parent_id is NOT NULL '
+		            //  + 'WHERE parent_id is NOT NULL '
+		           // might be a problem due to the reference of the parent ...
+		              + 'WHERE forum_post.deleted=0 '
+		              // unelegante Lösung ...
+		              + 'AND forum_post_forum_thread.forum_post_id NOT IN (SELECT start_post_id from forum_thread) '
+		              // für das kleinere Set nur 2020er Posts
+                              + 'AND UNIX_TIMESTAMP(forum_post.post_time) > 1577836800 '   
 
+			      + (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 
-				+ (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
-
+		Exporter.log('QUERY: ' + query);
 		if (!Exporter.connection) {
 			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
 			Exporter.error(err.error);
 			return callback(err);
 		}
-
 		Exporter.connection.query(query,
 				function(err, rows) {
 					if (err) {
