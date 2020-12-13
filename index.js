@@ -262,17 +262,15 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 						//TODO PostId
 						var _tempstring = row._content;
 						var _begin = _tempstring.indexOf("[quote=");
-						while (_begin != -1) {
+						while (_begin >= 0) {
 							_tempstring = _tempstring.substring(_begin + 7, _tempstring._end);
 							var _end = _tempstring.indexOf("]");
 							var _parent = _tempstring.substring(0, _end);
 							// has to wait for query results
-							const test = await getUser(_parent);
+const test = await getUser(_parent);
 							row._content = row._content.replace(_parent, test.post_user_id + ";" + test.id);
 							_begin = _tempstring.indexOf("[quote=");
 						}
-						
-
 						row._content = row._content || '';
 
 						row._timestamp = ((row._timestamp || 0) * 1000) || startms;
