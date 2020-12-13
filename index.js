@@ -267,7 +267,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 							var _end = _tempstring.indexOf("]");
 							var _parent = _tempstring.substring(0, _end);
 							// has to wait for query results
-const test = await getUser(_parent);
+							const test = await getUser(_parent);
 							row._content = row._content.replace(_parent, test.post_user_id + ";" + test.id);
 							_begin = _tempstring.indexOf("[quote=");
 						}
