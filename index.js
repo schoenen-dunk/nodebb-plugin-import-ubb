@@ -253,6 +253,27 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 					//normalize here
 					var map = {};
 					rows.forEach(function(row) {
+						//Ersetzte die PostID mit dem Nutzernamen
+						//TODO sagte in /post/POSTID
+						//toPid?
+						var _tempstring = row._content;
+						var _begin = _tempstring.indexOf("[quote=");
+						while (_begin != -1) {
+							var _tempstring = _tempstring.substring(_begin + 7, _content._end);
+							var _end = _tempstring.indexOf("]");
+							var _parent = _tempstring.substring(0, _end);
+
+							var _tempquery = "select post_user_id from forum_post where id=" + _parent;
+							//TODO testen ob folgendes Konstruktur funktioniert
+							Exporter.connection.query(_tempquery, function (err, rows) {
+								if (err) {
+									Exporter.error(err);
+								}
+								_content = _content.replace(_parent, rows.post_user_id);
+							});
+							_begin = _tempstring.indexOf("[quote=");
+						}
+
 						row._content = row._content || '';
 						row._timestamp = ((row._timestamp || 0) * 1000) || startms;
 						row._edited = row._edited ? row._edited * 1000 : row._edited;
