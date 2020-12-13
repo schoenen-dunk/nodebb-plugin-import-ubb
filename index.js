@@ -252,38 +252,58 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 
 					//normalize here
 					var map = {};
-					rows.forEach(function(row) {
-						//Ersetzte die PostID mit dem Nutzernamen
-						//TODO sagte in /post/POSTID
-						//toPid?
+					rows.forEach(async function test(row) {
+						//TODO PostId
 						var _tempstring = row._content;
 						var _begin = _tempstring.indexOf("[quote=");
 						while (_begin != -1) {
-							var _tempstring = _tempstring.substring(_begin + 7, _content._end);
+							_tempstring = _tempstring.substring(_begin + 7, _tempstring._end);
 							var _end = _tempstring.indexOf("]");
 							var _parent = _tempstring.substring(0, _end);
-
-							var _tempquery = "select post_user_id from forum_post where id=" + _parent;
-							//TODO testen ob folgendes Konstruktur funktioniert
-							Exporter.connection.query(_tempquery, function (err, rows) {
-								if (err) {
-									Exporter.error(err);
-								}
-								_content = _content.replace(_parent, rows.post_user_id);
-							});
+							// has to wait for query results
+							const test = await getUser(_parent);
+							row._content = row._content.replace(_parent, test.post_user_id + ";" + test.id);
 							_begin = _tempstring.indexOf("[quote=");
 						}
+						
 
 						row._content = row._content || '';
+
 						row._timestamp = ((row._timestamp || 0) * 1000) || startms;
 						row._edited = row._edited ? row._edited * 1000 : row._edited;
+
+						//Exporter.warn(row._content); 
+						//Exporter.log(row._pid);
+
 						map[row._pid] = row;
+					
+					
 					});
 
 					callback(null, map);
 				});
+
+
 	};
 
+	function getUser(_parent){
+		return new Promise(function(resolve, reject){
+			var tempquery = "select post_user_id, id from forum_post where id=" +  _parent;
+
+			Exporter.connection.query(tempquery,
+				function(err, result) {
+					if (err) {
+						Exporter.error(err);
+						return reject(err); 
+					}
+
+				resolve(result[0]);
+
+			});	
+
+
+		});
+	}
 
 	// todo: possible memory issues
 	/*
@@ -410,6 +430,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			function(next) {
 				Exporter.setup(config, next);
 			},
+			/*
 			function(next) {
 				Exporter.getUsers(next);
 			},
@@ -422,15 +443,18 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			function(next) {
 				Exporter.getTopics(next);
 			},
+			*/
 			function(next) {
 				Exporter.getPosts(next);
-			},
+			}
+			/*,
 			function(next) {
 				Exporter.getMessages(next);
 			},
 			function(next) {
 				Exporter.teardown(next);
 			}
+			*/
 		], callback);
 	};
 
