@@ -262,13 +262,29 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 						//TODO PostId
 						var _tempstring = row._content;
 						var _begin = _tempstring.indexOf("[quote=");
+						var _parent = 0;
 						while (_begin >= 0) {
 							_tempstring = _tempstring.substring(_begin + 7, _tempstring._end);
 							var _end = _tempstring.indexOf("]");
-							var _parent = _tempstring.substring(0, _end);
-							// has to wait for query results
-							const test = await getUser(_parent);
-							row._content = row._content.replace(_parent, test.post_user_id + ";" + test.id);
+
+							if(_end > 7 || _end < 0){
+								_end = 7;
+							}
+							_parent = _tempstring.substring(0, _end);
+				
+							if(isNaN(_parent) || _parent == ''){
+								Exporter.warn(row._pid);
+								Exporter.warn(_parent);
+							}
+							else
+							{
+								// has to wait for query results
+								const test = await getUser(_parent);
+								row._content = row._content.replace(_parent, test.post_user_id + ";" + test.id);
+								//Exporter.warn(_parent);
+								//Exporter.warn(row._content);
+							}
+
 							_begin = _tempstring.indexOf("[quote=");
 						}
 						row._content = row._content || '';
@@ -276,13 +292,12 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 						row._timestamp = ((row._timestamp || 0) * 1000) || startms;
 						row._edited = row._edited ? row._edited * 1000 : row._edited;
 
-						//Exporter.warn(row._content); 
-						//Exporter.log(row._pid);
-
 						map[row._pid] = row;
 					
 					
 					});
+
+					Exporter.warn("Done");
 
 					callback(null, map);
 				});
