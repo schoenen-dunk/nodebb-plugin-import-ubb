@@ -250,60 +250,85 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			return callback(err);
 		}
 		Exporter.connection.query(query,
-				function(err, rows) {
+				async function(err, rows) {
 					if (err) {
 						Exporter.error(err);
 						return callback(err);
 					}
 
-					//normalize here
-					var map = {};
-					rows.forEach(async function test(row) {
-						//TODO PostId
-						var _tempstring = row._content;
-						var _begin = _tempstring.indexOf("[quote=");
-						var _parent = 0;
-						while (_begin >= 0) {
-							_tempstring = _tempstring.substring(_begin + 7, _tempstring._end);
-							var _end = _tempstring.indexOf("]");
-
-							if(_end > 7 || _end < 0){
-								_end = 7;
-							}
-							_parent = _tempstring.substring(0, _end);
-				
-							if(isNaN(_parent) || _parent == ''){
-								Exporter.warn(row._pid);
-								Exporter.warn(_parent);
-							}
-							else
-							{
-								// has to wait for query results
-								const test = await getUser(_parent);
-								row._content = row._content.replace(_parent, test.post_user_id + ";" + test.id);
-								//Exporter.warn(_parent);
-								//Exporter.warn(row._content);
-							}
-
-							_begin = _tempstring.indexOf("[quote=");
-						}
-						row._content = row._content || '';
-
-						row._timestamp = ((row._timestamp || 0) * 1000) || startms;
-						row._edited = row._edited ? row._edited * 1000 : row._edited;
-
-						map[row._pid] = row;
-					
-					
-					});
-
-					Exporter.warn("Done");
+					//edit the posts
+					var map = await editContent(rows);					
+					Exporter.warn(map[2343756]);
+					Exporter.warn(map[2343752]);
+					Exporter.warn(map[2338270]);
 
 					callback(null, map);
+
 				});
-
-
 	};
+
+
+	async function editContent(rows) {
+		Exporter.warn("lenght = " + rows.length);
+
+		var map = {};
+
+		for (let i=0; i<rows.length; i++) {
+
+			try{
+				var _tempstring = rows[i]._content;
+				var _begin = _tempstring.indexOf("[quote=");
+				var _parent = 0;
+				while (_begin >= 0) {
+					_tempstring = _tempstring.substring(_begin + 7, _tempstring._end);
+					var _end = _tempstring.indexOf("]");
+					var _ending = '';
+
+					
+					if(_end > 7 || _end < 0){
+						_end = 7;
+						Exporter.warn(rows[i]._pid);
+						Exporter.warn(_parent);
+						_ending = ']'
+					}
+					_parent = _tempstring.substring(0, _end);
+					
+					if(isNaN(_parent) || _parent == ''){
+						Exporter.warn(rows[i]._pid);
+						Exporter.warn(_parent);
+					}
+					else
+					{
+						// has to wait for query results
+						const test = await getUser(_parent);
+						rows[i]._content = rows[i]._content.replace(_parent, test.post_user_id + _ending);
+						//Exporter.warn(_parent);
+						//Exporter.warn(row._content);
+					}
+
+					_begin = _tempstring.indexOf("[quote=");
+				}
+				
+				rows[i]._content = rows[i]._content || '';
+
+				rows[i]._timestamp = ((rows[i]._timestamp || 0) * 1000) || startms;
+				rows[i]._edited = rows[i]._edited ? rows[i]._edited * 1000 : rows[i]._edited;
+
+				map[rows[i]._pid] = rows[i];
+				
+			}catch{
+				Exporter.warn("ERROR on " + rows[i]);
+			};
+			
+					
+					
+		};
+
+		return map;
+
+	}
+
+
 
 	function getUser(_parent){
 		return new Promise(function(resolve, reject){
@@ -319,8 +344,6 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				resolve(result[0]);
 
 			});	
-
-
 		});
 	}
 
