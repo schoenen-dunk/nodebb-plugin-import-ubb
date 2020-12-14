@@ -317,7 +317,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				map[rows[i]._pid] = rows[i];
 				
 			}catch{
-				Exporter.warn("ERROR on " + rows[i]);
+				Exporter.warn("ERROR on " + rows[i]._pid);
 			};
 			
 					
