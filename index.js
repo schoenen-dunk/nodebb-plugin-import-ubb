@@ -50,8 +50,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                                + 'core_user.signature as _signature, '
                                + 'core_user.www as _website, '
                                + 'core_user.avatar as _picture, '
-                               + 'core_user.id as _badge, '
-                               + 'core_user.birthdate as _birthday '
+                               + 'core_user.id as _badge '
+//                               + 'core_user.birthdate as _birthday '
                                + 'FROM ' + 'core_user '
 //		               + 'LEFT JOIN core_user_session ON core_user_session.core_user_id=core_user.id '
 //		               + 'GROUP BY core_user.id '
@@ -238,8 +238,6 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 		              + 'WHERE forum_post.deleted=0 '
 		              // unelegante Lösung ...
 		              + 'AND forum_post_forum_thread.forum_post_id NOT IN (SELECT start_post_id from forum_thread) '
-		              // für das kleinere Set nur 2020er Posts
-                              + 'AND UNIX_TIMESTAMP(forum_post.post_time) > 1577836800 '   
 
 			      + (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 
