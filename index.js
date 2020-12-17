@@ -235,7 +235,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 					// see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
 		            //  + 'WHERE parent_id is NOT NULL '
 		           // might be a problem due to the reference of the parent ...
-		              + 'WHERE forum_post.deleted=0 '
+					  + 'WHERE forum_post.deleted=0 '
+					  + 'AND forum_post.visible=1 '
 		              // unelegante Lösung ...
 		              + 'AND forum_post_forum_thread.forum_post_id NOT IN (SELECT start_post_id from forum_thread) '
 
