@@ -174,10 +174,10 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                              +  'forum_thread.sticky as _pinned, '
                              +  'UNIX_TIMESTAMP(forum_post.lastedit_time) as _edited, '
                              +  'forum_post.ip_address as _ip '
-                             +  'FROM forum_thread '
+							 +  'FROM forum_thread '
                              +  'JOIN forum_board_forum_thread ON forum_thread.id=forum_board_forum_thread.forum_thread_id '
                              +  'JOIN forum_post ON forum_thread.start_post_id=forum_post.id '
-		
+							 +  'where forum_thread.deleted = 0 '
 
 		             + (start >= 0 && limit >= 0 ? ' LIMIT ' + start + ', ' + limit : '');
 	
@@ -481,10 +481,10 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			function(next) {
 				Exporter.getCategories(next);
 			},
+			*/
 			function(next) {
 				Exporter.getTopics(next);
 			},
-			*/
 			function(next) {
 				Exporter.getPosts(next);
 			}
